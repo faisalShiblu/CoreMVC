@@ -24,6 +24,8 @@ namespace CoreMVCCRUD.Controllers
             return View(await _context.Employees.ToListAsync());
         }
 
+
+
         // GET: Employee/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -39,6 +41,30 @@ namespace CoreMVCCRUD.Controllers
                 return NotFound();
             }
 
+            return View(employee);
+        }
+
+
+        public IActionResult AddOrEdit(int id = 0)
+        {
+            if (id == 0)
+                return View(new Employee());
+            else
+                return View(_context.Employees.Find(id));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddOrEdit([Bind("EmployeeId,FullName,EmpCode,Position,OfficeLocation")] Employee employee)
+        {
+            if (ModelState.IsValid)
+            {
+                if (employee.EmployeeId == 0)
+                    _context.Add(employee);
+                else
+                    _context.Update(employee);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
             return View(employee);
         }
 
@@ -118,20 +144,29 @@ namespace CoreMVCCRUD.Controllers
         // GET: Employee/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(m => m.EmployeeId == id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            return View(employee);
+            var employee = await _context.Employees.FindAsync(id);
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+        //public async Task<IActionResult> Delete(int? id)
+        //{
+        //    if (id == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var employee = await _context.Employees
+        //        .FirstOrDefaultAsync(m => m.EmployeeId == id);
+        //    if (employee == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return View(employee);
+        //}
 
         // POST: Employee/Delete/5
         [HttpPost, ActionName("Delete")]
